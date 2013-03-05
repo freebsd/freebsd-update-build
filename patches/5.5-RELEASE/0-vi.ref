@@ -1,0 +1,16 @@
+Index: contrib/nvi/docs/USD.doc/vi.ref/vi.ref
+===================================================================
+RCS file: /home/ncvs/src/contrib/nvi/docs/USD.doc/vi.ref/vi.ref,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -I__FBSDID -r1.1 -r1.2
+--- contrib/nvi/docs/USD.doc/vi.ref/vi.ref	1 Nov 1996 06:45:34 -0000	1.1
++++ contrib/nvi/docs/USD.doc/vi.ref/vi.ref	17 Aug 2005 15:56:04 -0000	1.2
+@@ -27,7 +27,6 @@
+ University of California, Berkeley
+ Berkeley, California  94720
+ .sp 1
+-\*(td
+ .)l
+ .sp 3
+ .(l C

@@ -1,0 +1,15 @@
+Index: share/doc/papers/px/pxin0.n
+===================================================================
+RCS file: /home/ncvs/src/share/doc/papers/px/Attic/pxin0.n,v
+retrieving revision 1.2
+diff -u -I__FBSDID -r1.2 pxin0.n
+--- share/doc/papers/px/pxin0.n	30 Nov 2000 17:06:28 -0000	1.2
++++ share/doc/papers/px/pxin0.n	16 Jul 2006 00:19:53 -0000
+@@ -32,6 +32,7 @@
+ .\"	@(#)pxin0.n	5.2 (Berkeley) 4/17/91
+ .\" $FreeBSD: src/share/doc/papers/px/pxin0.n,v 1.2 2000/11/30 17:06:28 ru Exp $
+ .\"
++.ND 17 Apr 1991
+ .RP
+ .TL
+ Berkeley Pascal

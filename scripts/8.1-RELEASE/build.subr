@@ -1,0 +1,6 @@
+# Add extra docs to ${WORKDIR}/$1
+addextradocs () {
+	log "Extracting extra docs"
+
+	# 8.0 doesn't have any extra docs
+}
