@@ -32,6 +32,7 @@ __FBSDID("$FreeBSD$");
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static void usage(void);
 static void unstamp_text(FILE * F0, FILE * F1);
