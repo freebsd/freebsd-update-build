@@ -54,7 +54,7 @@ extractiso () {
 
 	# If the release ISO we're handling belongs to the platform
 	# we're running right now, create a world image for future use.
-	if [ ${TARGET} = ${HOSTPLATFORM} ]; then
+	# XXX delphij if [ ${TARGET} = ${HOSTPLATFORM} ]; then
 		log "Constructing world+src image"
 
 		# Create directory for world
@@ -75,7 +75,7 @@ extractiso () {
 
 		# clean up
 		nuke world
-	fi
+	# XXX delphij fi
 
 	# Unmount and detach the ISO image md(4).
 	umount ${WORKDIR}/iso
@@ -98,7 +98,7 @@ buildworld () {
 	# Build stuff.
 	jail ${WORKDIR}/$1 ${BUILDHOSTNAME} 127.1.2.3			\
 	    /usr/bin/env -i PATH=${PATH} RELP=${RELP}			\
-		BRANCH_OVERRIDE=$2					\
+		BRANCH_OVERRIDE=$2 VERSION="FreeBSD 9.1-RELEASE i386 902001"	\
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}		\
 	    /bin/sh -e <<-"EOF" 2>&1 >${WORKDIR}/$1-build.log
 		# Function for logging what we're doing

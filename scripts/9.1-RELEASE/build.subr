@@ -98,7 +98,7 @@ buildworld () {
 	# Build stuff.
 	jail ${WORKDIR}/$1 ${BUILDHOSTNAME} 127.1.2.3			\
 	    /usr/bin/env -i PATH=${PATH} RELP=${RELP}			\
-		BRANCH_OVERRIDE=$2 JFLAG=${JFLAG}			\
+		BRANCH_OVERRIDE=$2					\
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}		\
 	    /bin/sh -e <<-"EOF" 2>&1 >${WORKDIR}/$1-build.log
 		# Function for logging what we're doing
@@ -109,12 +109,12 @@ buildworld () {
 		# Build the world
 		log "Building world"
 		cd /usr/src &&
-		    make buildworld ${JFLAG} 2>&1
+		    make buildworld -j17 2>&1
 
 		# Build and kernel
 		log "Building kernel"
 		cd /usr/src &&
-		    make buildkernel ${JFLAG} 2>&1
+		    make buildkernel -j17 2>&1
 
 		# Build and install release images
 		log "Building release"

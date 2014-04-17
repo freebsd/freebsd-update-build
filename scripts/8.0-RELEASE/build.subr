@@ -4,3 +4,65 @@ addextradocs () {
 
 	# 8.0 doesn't have any extra docs
 }
+
+# Extract the released trees and, if appropriate, construct a world (base
+# plus source code) in which to perform builds.
+extractiso () {
+	# Create and mount a md(4) attached to the ISO image.
+	ISOMD=`mdconfig -a -t vnode -f ${WORKDIR}/iso.img -n`
+	mkdir -p ${WORKDIR}/iso
+	mount -t cd9660 -o ro,nosuid /dev/md${ISOMD} ${WORKDIR}/iso
+
+	# Extract the various components into different directories
+	log "Extracting components"
+	for C in ${WORLDPARTS}; do
+		mkdir -p ${WORKDIR}/release/R/trees/world/${C}
+		cat ${WORKDIR}/iso/${REL}/${C}/${C}.?? |
+		    tar -xpzf - -C ${WORKDIR}/release/R/trees/world/${C}
+	done
+	for C in ${KERNELPARTS}; do
+		mkdir -p ${WORKDIR}/release/R/trees/kernel/${C}
+		cat ${WORKDIR}/iso/${REL}/kernels/${C}.?? |
+		    tar -xpzf - -C ${WORKDIR}/release/R/trees/kernel/${C}
+	done
+	for C in ${SOURCEPARTS}; do
+		mkdir -p ${WORKDIR}/release/R/trees/src/${C}
+		cat ${WORKDIR}/iso/${REL}/src/s${C}.?? |
+		    tar -xpzf - -C ${WORKDIR}/release/R/trees/src/${C}
+	done
+
+	# If the release ISO we're handling belongs to the platform
+	# we're running right now, create a world image for future use.
+	if [ ${TARGET} = ${HOSTPLATFORM} ]; then
+		log "Constructing world+src image"
+
+		# Create directory for world
+		mkdir ${WORKDIR}/world/
+
+		# Extract world and source distributions
+		for C in ${WORLDPARTS}; do
+			cat ${WORKDIR}/iso/${REL}/${C}/${C}.?? |
+			    tar -xpzf - -C ${WORKDIR}/world/
+		done
+		for C in ${SOURCEPARTS}; do
+			cat ${WORKDIR}/iso/${REL}/src/s${C}.?? |
+			    tar -xpzf - -C ${WORKDIR}/world/usr/src/
+		done
+
+		# Grab the 7.x version of /bin/ln -- necessary to make
+		# buildworld work on a 7.x kernel which lacks linkat().
+		tar -cf- /bin/ln |
+		    tar -xpf- -C ${WORKDIR}/world/
+
+		# build a single tarball of them.
+		tar -czf ${WORKDIR}/../world.tgz -C ${WORKDIR}/world .
+
+		# clean up
+		nuke world
+	fi
+
+	# Unmount and detach the ISO image md(4).
+	umount ${WORKDIR}/iso
+	rmdir ${WORKDIR}/iso
+	mdconfig -d -u ${ISOMD}
+}
