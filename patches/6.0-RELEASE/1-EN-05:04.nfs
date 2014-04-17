@@ -1,0 +1,17 @@
+Index: sys/nfsclient/nfs_vnops.c
+===================================================================
+RCS file: /home/ncvs/src/sys/nfsclient/nfs_vnops.c,v
+retrieving revision 1.258
+retrieving revision 1.258.4.1
+diff -u -I__FBSDID -r1.258 -r1.258.4.1
+--- sys/nfsclient/nfs_vnops.c	14 Apr 2005 07:08:34 -0000	1.258
++++ sys/nfsclient/nfs_vnops.c	19 Dec 2005 10:58:57 -0000	1.258.4.1
+@@ -890,7 +890,7 @@
+ nfsmout:
+ 	if (error) {
+ 		if (newvp != NULLVP) {
+-			vrele(newvp);
++			vput(newvp);
+ 			*vpp = NULLVP;
+ 		}
+ 		if ((cnp->cn_nameiop == CREATE || cnp->cn_nameiop == RENAME) &&
