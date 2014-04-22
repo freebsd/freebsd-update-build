@@ -349,7 +349,7 @@ extractiso () {
 
 	# If the release ISO we're handling belongs to the platform
 	# we're running right now, create a world image for future use.
-	if [ ${TARGET} = ${HOSTPLATFORM} ]; then
+	if [ ${TARGET} = ${HOSTPLATFORM} ] || [ "${HOSTPLATFORM}" = "amd64" -a "${TARGET}" = "i386" ]; then
 		log "Constructing world+src image"
 
 		# Create directory for world
