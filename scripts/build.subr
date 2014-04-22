@@ -46,6 +46,8 @@ readglobalconfig () {
 	export KEYDIR=${BASEDIR}/keys
 	export PRIVKEYDIR=${KEYDIR}/mnt
 
+	JFLAG=${JFLAG:-"-j$(($(sysctl -n kern.smp.cpus)+1))"}
+
 	# Read global configuration
 	. ${SCRIPTDIR}/build.conf
 }
