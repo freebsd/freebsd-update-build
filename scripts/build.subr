@@ -112,6 +112,7 @@ log () {
 
 # Function for nuking a directory
 nuke () {
+	umount ${WORKDIR}/$1 2>/dev/null || true
 	rm -rf ${WORKDIR}/$1 2>/dev/null || true
 	if [ -d ${WORKDIR}/$1 ]; then
 		chflags -R noschg ${WORKDIR}/$1
@@ -390,6 +391,7 @@ extractworld () {
 
 	log "Extracting world+src"
 	mkdir -p ${WORKDIR}/$1
+	mount -t tmpfs tmpfs ${WORKDIR}/$1
 	tar -xpzf ${WORKDIR}/../world.tgz -C ${WORKDIR}/$1
 }
 
@@ -397,7 +399,7 @@ extractworld () {
 applypatches () {
 	while read PATCH; do
 		cat ${PATCHDIR}/${PATCH} |
-			( cd ${WORKDIR}/$1/usr/src && patch )
+			( cd ${WORKDIR}/$1/usr/src && patch -p0 )
 	done < $2 2> ${WORKDIR}/$1-patch.log
 
 	# Remove ".orig" files created by patch(1)
@@ -811,7 +813,9 @@ stageworld () {
 		fi
 
 		# Move $1 to newworld
-		mv ${WORKDIR}/$1 ${WORKDIR}/newworld
+		mkdir -p ${WORKDIR}/newworld
+		tar cf - -C ${WORKDIR}/$1 . | tar xf - -C ${WORKDIR}/newworld/
+		umount ${WORKDIR}/$1 || rm -fr ${WORKDIR}/$1 || chflags -R 0 ${WORKDIR}/$1 && rm -fr ${WORKDIR}/$1 || true
 		mv ${WORKDIR}/$1-index ${WORKDIR}/newworld-index
 	fi
 
