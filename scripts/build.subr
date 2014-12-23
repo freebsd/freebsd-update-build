@@ -899,6 +899,7 @@ stageworld () {
 	for M in INDEX-ALL INDEX-NEW INDEX-OLD; do
 		# Create publishable version
 		indexpublish < ${WORKDIR}/${M}.new		\
+		    | fgrep -v 'kernel|generic|/boot/kernel/linker.hints' \
 		    > ${WORKDIR}/${M}.new.pub
 
 		# Copy to staging area
