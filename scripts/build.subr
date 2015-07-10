@@ -900,7 +900,7 @@ stageworld () {
 		# Create publishable version
 		indexpublish < ${WORKDIR}/${M}.new		\
 		    | fgrep -v 'kernel|generic|/boot/kernel/linker.hints' \
-		    > ${WORKDIR}/${M}.new.pub
+		    > ${WORKDIR}/${M}.new.pub || true
 
 		# Copy to staging area
 		H=`sha256 -q ${WORKDIR}/${M}.new.pub`
