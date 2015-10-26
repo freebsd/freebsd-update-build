@@ -397,20 +397,19 @@ extractworld () {
 
 # Apply a list of patches stored in $2 to a world in ${WORKDIR}/$1
 applypatches () {
+	cd ${WORKDIR}/$1/usr/src
 	while read PATCH; do
-		cat ${PATCHDIR}/${PATCH} |
-			( cd ${WORKDIR}/$1/usr/src && patch -p0 )
+		patch -p0 < ${PATCHDIR}/${PATCH}
+		# Remove ".orig" files created by patch(1) and empty files
+		for file in $(awk '$1 ~ /^(Index:|diff)/ { print $NF }' < \
+		    ${PATCHDIR}/${PATCH}); do
+			echo ${file}.orig
+			if [ ! -s ${file} ]; then
+				echo ${file}
+			fi
+		done | xargs rm -f
 	done < $2 2> ${WORKDIR}/$1-patch.log
-
-	# Remove ".orig" files created by patch(1)
-	cat $2 |
-	    lam -s "${PATCHDIR}/" - |
-	    xargs cat |
-	    grep -E '^Index: ' |
-	    cut -f 2 -d ' ' |
-	    lam - -s '.orig' |
-	    sort -u |
-	    ( cd ${WORKDIR}/$1/usr/src && xargs rm )
+	cd -
 }
 
 # In a world at ${WORKDIR}/$1, edit src/sys/conf/newvers.sh to
