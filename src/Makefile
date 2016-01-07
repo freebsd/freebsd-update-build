@@ -1,3 +1,5 @@
+# $FreeBSD$
+
 all:	findstamps unstamp
 
 install:
