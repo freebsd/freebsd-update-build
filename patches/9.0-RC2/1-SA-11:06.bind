@@ -1,0 +1,66 @@
+Index: contrib/bind9/lib/dns/rbtdb.c
+===================================================================
+--- contrib/bind9/lib/dns/rbtdb.c	(revision 228188)
++++ contrib/bind9/lib/dns/rbtdb.c	(revision 228189)
+@@ -5053,7 +5053,7 @@
+ 			      rdataset);
+ 		if (need_headerupdate(found, search.now))
+ 			update = found;
+-		if (foundsig != NULL) {
++		if (!NEGATIVE(found) && foundsig != NULL) {
+ 			bind_rdataset(search.rbtdb, node, foundsig, search.now,
+ 				      sigrdataset);
+ 			if (need_headerupdate(foundsig, search.now))
+@@ -5685,7 +5685,7 @@
+ 	}
+ 	if (found != NULL) {
+ 		bind_rdataset(rbtdb, rbtnode, found, now, rdataset);
+-		if (foundsig != NULL)
++		if (!NEGATIVE(found) && foundsig != NULL)
+ 			bind_rdataset(rbtdb, rbtnode, foundsig, now,
+ 				      sigrdataset);
+ 	}
+Index: contrib/bind9/bin/named/query.c
+===================================================================
+--- contrib/bind9/bin/named/query.c	(revision 228188)
++++ contrib/bind9/bin/named/query.c	(revision 228189)
+@@ -1393,11 +1393,9 @@
+ 			goto addname;
+ 		if (result == DNS_R_NCACHENXRRSET) {
+ 			dns_rdataset_disassociate(rdataset);
+-			/*
+-			 * Negative cache entries don't have sigrdatasets.
+-			 */
+-			INSIST(sigrdataset == NULL ||
+-			       ! dns_rdataset_isassociated(sigrdataset));
++			if (sigrdataset != NULL &&
++			    dns_rdataset_isassociated(sigrdataset))
++				dns_rdataset_disassociate(sigrdataset);
+ 		}
+ 		if (result == ISC_R_SUCCESS) {
+ 			mname = NULL;
+@@ -1438,8 +1436,9 @@
+ 			goto addname;
+ 		if (result == DNS_R_NCACHENXRRSET) {
+ 			dns_rdataset_disassociate(rdataset);
+-			INSIST(sigrdataset == NULL ||
+-			       ! dns_rdataset_isassociated(sigrdataset));
++			if (sigrdataset != NULL &&
++			    dns_rdataset_isassociated(sigrdataset))
++				dns_rdataset_disassociate(sigrdataset);
+ 		}
+ 		if (result == ISC_R_SUCCESS) {
+ 			mname = NULL;
+@@ -1889,10 +1888,8 @@
+ 		goto setcache;
+ 	if (result == DNS_R_NCACHENXRRSET) {
+ 		dns_rdataset_disassociate(rdataset);
+-		/*
+-		 * Negative cache entries don't have sigrdatasets.
+-		 */
+-		INSIST(! dns_rdataset_isassociated(sigrdataset));
++		if (dns_rdataset_isassociated(sigrdataset))
++			dns_rdataset_disassociate(sigrdataset);
+ 	}
+ 	if (result == ISC_R_SUCCESS) {
+ 		/* Remember the result as a cache */

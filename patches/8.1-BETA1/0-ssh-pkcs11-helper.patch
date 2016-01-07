@@ -1,0 +1,13 @@
+Index: crypto/openssh/ssh-pkcs11-helper.8
+===================================================================
+--- crypto/openssh/ssh-pkcs11-helper.8	(revision 208605)
++++ crypto/openssh/ssh-pkcs11-helper.8	(working copy)
+@@ -14,7 +14,7 @@
+ .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ .\"
+-.Dd $Mdocdate: February 10 2010 $
++.Dd February 10, 2010
+ .Dt SSH-PKCS11-HELPER 8
+ .Os
+ .Sh NAME

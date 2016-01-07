@@ -1,0 +1,11 @@
+Index: lib/clang/clang.build.mk
+--- lib/clang/clang.build.mk	2011-10-20 05:42:19.000000000 -0700
++++ lib/clang/clang.build.mk	2011-10-20 05:42:54.000000000 -0700
+@@ -6,6 +6,7 @@
+ 	-I${LLVM_SRCS}/${SRCDIR} ${INCDIR:C/^/-I${LLVM_SRCS}\//} -I. \
+ 	-I${LLVM_SRCS}/../../lib/clang/include \
+ 	-DLLVM_ON_UNIX -DLLVM_ON_FREEBSD \
++	-frandom-seed=RepeatabilityConsideredGood \
+ 	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS #-DNDEBUG
+ 
+ # Correct for gcc miscompilation when compiling on PPC with -O2
