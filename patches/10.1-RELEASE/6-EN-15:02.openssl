@@ -6944,25 +6944,6 @@ Index: crypto/openssl/util/mkbuildinf.pl
 +    #define DATE "built on: $date"
 +#endif
 +END_OUTPUT
-
-Property changes on: crypto/openssl/util/mkbuildinf.pl
-___________________________________________________________________
-Added: svn:eol-style
-## -0,0 +1 ##
-+native
-\ No newline at end of property
-Added: svn:executable
-## -0,0 +1 ##
-+*
-\ No newline at end of property
-Added: svn:keywords
-## -0,0 +1 ##
-+FreeBSD=%H
-\ No newline at end of property
-Added: svn:mime-type
-## -0,0 +1 ##
-+text/plain
-\ No newline at end of property
 Index: crypto/openssl/util/mkdef.pl
 ===================================================================
 --- crypto/openssl/util/mkdef.pl	(revision 279126)
