@@ -1,7 +1,5 @@
-Index: sys/dev/filemon/filemon.c
-===================================================================
---- sys/dev/filemon/filemon.c	(revision 292588)
-+++ sys/dev/filemon/filemon.c	(working copy)
+--- sys/dev/filemon/filemon.c.orig
++++ sys/dev/filemon/filemon.c
 @@ -1,6 +1,7 @@
  /*-
   * Copyright (c) 2011, David E. O'Brien.
@@ -10,7 +8,7 @@ Index: sys/dev/filemon/filemon.c
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without
-@@ -39,6 +40,7 @@ __FBSDID("$FreeBSD$");
+@@ -39,6 +40,7 @@
  #include <sys/fcntl.h>
  #include <sys/ioccom.h>
  #include <sys/kernel.h>
@@ -18,7 +16,7 @@ Index: sys/dev/filemon/filemon.c
  #include <sys/malloc.h>
  #include <sys/module.h>
  #include <sys/mutex.h>
-@@ -45,6 +47,7 @@ __FBSDID("$FreeBSD$");
+@@ -45,6 +47,7 @@
  #include <sys/poll.h>
  #include <sys/proc.h>
  #include <sys/queue.h>
@@ -26,7 +24,7 @@ Index: sys/dev/filemon/filemon.c
  #include <sys/syscall.h>
  #include <sys/sysent.h>
  #include <sys/sysproto.h>
-@@ -85,12 +88,8 @@ MALLOC_DEFINE(M_FILEMON, "filemon", "File access m
+@@ -85,12 +88,8 @@
  
  struct filemon {
  	TAILQ_ENTRY(filemon) link;	/* Link into the in-use list. */
@@ -40,7 +38,7 @@ Index: sys/dev/filemon/filemon.c
  	pid_t		pid;		/* The process ID being monitored. */
  	char		fname1[MAXPATHLEN]; /* Temporary filename buffer. */
  	char		fname2[MAXPATHLEN]; /* Temporary filename buffer. */
-@@ -99,11 +98,7 @@ struct filemon {
+@@ -99,11 +98,7 @@
  
  static TAILQ_HEAD(, filemon) filemons_inuse = TAILQ_HEAD_INITIALIZER(filemons_inuse);
  static TAILQ_HEAD(, filemon) filemons_free = TAILQ_HEAD_INITIALIZER(filemons_free);
@@ -53,7 +51,7 @@ Index: sys/dev/filemon/filemon.c
  
  static struct cdev *filemon_dev;
  
-@@ -203,8 +198,7 @@ filemon_open(struct cdev *dev, int oflags __unused
+@@ -203,8 +198,7 @@
  
  		filemon->fp = NULL;
  
@@ -63,7 +61,7 @@ Index: sys/dev/filemon/filemon.c
  	}
  
  	filemon->pid = curproc->p_pid;
-@@ -234,8 +228,7 @@ filemon_close(struct cdev *dev __unused, int flag
+@@ -234,8 +228,7 @@
  static void
  filemon_load(void *dummy __unused)
  {
@@ -73,7 +71,7 @@ Index: sys/dev/filemon/filemon.c
  
  	/* Install the syscall wrappers. */
  	filemon_wrapper_install();
-@@ -270,14 +263,12 @@ filemon_unload(void)
+@@ -270,14 +263,12 @@
  		filemon_lock_write();
  		while ((filemon = TAILQ_FIRST(&filemons_free)) != NULL) {
  			TAILQ_REMOVE(&filemons_free, filemon, link);
@@ -90,10 +88,8 @@ Index: sys/dev/filemon/filemon.c
  	}
  
  	return (error);
-Index: sys/dev/filemon/filemon_lock.c
-===================================================================
---- sys/dev/filemon/filemon_lock.c	(revision 292588)
-+++ sys/dev/filemon/filemon_lock.c	(working copy)
+--- sys/dev/filemon/filemon_lock.c.orig
++++ sys/dev/filemon/filemon_lock.c
 @@ -1,5 +1,6 @@
  /*-
   * Copyright (c) 2009-2011, Juniper Networks, Inc.
@@ -210,10 +206,8 @@ Index: sys/dev/filemon/filemon_lock.c
 -	mtx_unlock(&access_mtx);
 +	sx_xunlock(&access_lock);
  }
-Index: sys/dev/filemon/filemon_wrapper.c
-===================================================================
---- sys/dev/filemon/filemon_wrapper.c	(revision 292588)
-+++ sys/dev/filemon/filemon_wrapper.c	(working copy)
+--- sys/dev/filemon/filemon_wrapper.c.orig
++++ sys/dev/filemon/filemon_wrapper.c
 @@ -1,6 +1,7 @@
  /*-
   * Copyright (c) 2011, David E. O'Brien.
@@ -222,7 +216,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without
-@@ -86,11 +87,18 @@ filemon_pid_check(struct proc *p)
+@@ -86,11 +87,18 @@
  {
  	struct filemon *filemon;
  
@@ -241,7 +235,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  				return (filemon);
  			}
  		}
-@@ -97,6 +105,7 @@ filemon_pid_check(struct proc *p)
+@@ -97,6 +105,7 @@
  		p = proc_realparent(p);
  	}
  	sx_sunlock(&proctree_lock);
@@ -249,7 +243,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	return (NULL);
  }
  
-@@ -109,9 +118,6 @@ filemon_comment(struct filemon *filemon)
+@@ -109,9 +118,6 @@
  	/* Load timestamp before locking.  Less accurate but less contention. */
  	getmicrotime(&now);
  
@@ -259,7 +253,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	/* Lock the found filemon structure. */
  	filemon_filemon_lock(filemon);
  
-@@ -124,9 +130,6 @@ filemon_comment(struct filemon *filemon)
+@@ -124,9 +130,6 @@
  
  	/* Unlock the found filemon structure. */
  	filemon_filemon_unlock(filemon);
@@ -269,7 +263,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  }
  
  static int
-@@ -138,13 +141,7 @@ filemon_wrapper_chdir(struct thread *td, struct ch
+@@ -138,13 +141,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_chdir(td, uap)) == 0) {
@@ -283,7 +277,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  
-@@ -157,9 +154,6 @@ filemon_wrapper_chdir(struct thread *td, struct ch
+@@ -157,9 +154,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -293,7 +287,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -177,13 +171,7 @@ filemon_wrapper_execve(struct thread *td, struct e
+@@ -177,13 +171,7 @@
  	copyinstr(uap->fname, fname, sizeof(fname), &done);
  
  	if ((ret = sys_execve(td, uap)) == 0) {
@@ -307,7 +301,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			len = snprintf(filemon->msgbufr,
  			    sizeof(filemon->msgbufr), "E %d %s\n",
  			    curproc->p_pid, fname);
-@@ -193,9 +181,6 @@ filemon_wrapper_execve(struct thread *td, struct e
+@@ -193,9 +181,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -317,7 +311,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -215,13 +200,7 @@ filemon_wrapper_freebsd32_execve(struct thread *td
+@@ -215,13 +200,7 @@
  	copyinstr(uap->fname, fname, sizeof(fname), &done);
  
  	if ((ret = freebsd32_execve(td, uap)) == 0) {
@@ -331,7 +325,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			len = snprintf(filemon->msgbufr,
  			    sizeof(filemon->msgbufr), "E %d %s\n",
  			    curproc->p_pid, fname);
-@@ -231,9 +210,6 @@ filemon_wrapper_freebsd32_execve(struct thread *td
+@@ -231,9 +210,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -341,7 +335,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -248,13 +224,7 @@ filemon_wrapper_fork(struct thread *td, struct for
+@@ -248,13 +224,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_fork(td, uap)) == 0) {
@@ -355,7 +349,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			len = snprintf(filemon->msgbufr,
  			    sizeof(filemon->msgbufr), "F %d %ld\n",
  			    curproc->p_pid, (long)curthread->td_retval[0]);
-@@ -264,9 +234,6 @@ filemon_wrapper_fork(struct thread *td, struct for
+@@ -264,9 +234,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -365,7 +359,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -281,13 +248,7 @@ filemon_wrapper_open(struct thread *td, struct ope
+@@ -281,13 +248,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_open(td, uap)) == 0) {
@@ -379,7 +373,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  
-@@ -313,9 +274,6 @@ filemon_wrapper_open(struct thread *td, struct ope
+@@ -313,9 +274,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -389,7 +383,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -330,13 +288,7 @@ filemon_wrapper_openat(struct thread *td, struct o
+@@ -330,13 +288,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_openat(td, uap)) == 0) {
@@ -403,7 +397,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  
-@@ -375,9 +327,6 @@ filemon_wrapper_openat(struct thread *td, struct o
+@@ -375,9 +327,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -413,7 +407,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -392,13 +341,7 @@ filemon_wrapper_rename(struct thread *td, struct r
+@@ -392,13 +341,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_rename(td, uap)) == 0) {
@@ -427,7 +421,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->from, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  			copyinstr(uap->to, filemon->fname2,
-@@ -413,9 +356,6 @@ filemon_wrapper_rename(struct thread *td, struct r
+@@ -413,9 +356,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -437,7 +431,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -430,13 +370,7 @@ filemon_wrapper_link(struct thread *td, struct lin
+@@ -430,13 +370,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_link(td, uap)) == 0) {
@@ -451,7 +445,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  			copyinstr(uap->link, filemon->fname2,
-@@ -451,9 +385,6 @@ filemon_wrapper_link(struct thread *td, struct lin
+@@ -451,9 +385,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -461,7 +455,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -468,13 +399,7 @@ filemon_wrapper_symlink(struct thread *td, struct
+@@ -468,13 +399,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_symlink(td, uap)) == 0) {
@@ -475,7 +469,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  			copyinstr(uap->link, filemon->fname2,
-@@ -489,9 +414,6 @@ filemon_wrapper_symlink(struct thread *td, struct
+@@ -489,9 +414,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -485,7 +479,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -507,13 +429,7 @@ filemon_wrapper_linkat(struct thread *td, struct l
+@@ -507,13 +429,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_linkat(td, uap)) == 0) {
@@ -499,7 +493,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path1, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  			copyinstr(uap->path2, filemon->fname2,
-@@ -528,9 +444,6 @@ filemon_wrapper_linkat(struct thread *td, struct l
+@@ -528,9 +444,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -509,7 +503,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -546,13 +459,7 @@ filemon_wrapper_stat(struct thread *td, struct sta
+@@ -546,13 +459,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_stat(td, uap)) == 0) {
@@ -523,7 +517,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  
-@@ -565,9 +472,6 @@ filemon_wrapper_stat(struct thread *td, struct sta
+@@ -565,9 +472,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -533,7 +527,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -584,13 +488,7 @@ filemon_wrapper_freebsd32_stat(struct thread *td,
+@@ -584,13 +488,7 @@
  	struct filemon *filemon;
  
  	if ((ret = freebsd32_stat(td, uap)) == 0) {
@@ -547,7 +541,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  
-@@ -603,9 +501,6 @@ filemon_wrapper_freebsd32_stat(struct thread *td,
+@@ -603,9 +501,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -557,7 +551,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -622,13 +517,7 @@ filemon_wrapper_sys_exit(struct thread *td, struct
+@@ -622,13 +517,7 @@
  	/* Get timestamp before locking. */
  	getmicrotime(&now);
  
@@ -571,7 +565,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  		len = snprintf(filemon->msgbufr, sizeof(filemon->msgbufr),
  		    "X %d %d\n", curproc->p_pid, uap->rval);
  
-@@ -649,9 +538,6 @@ filemon_wrapper_sys_exit(struct thread *td, struct
+@@ -649,9 +538,6 @@
  		filemon_filemon_unlock(filemon);
  	}
  
@@ -581,7 +575,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	sys_sys_exit(td, uap);
  }
  
-@@ -664,13 +550,7 @@ filemon_wrapper_unlink(struct thread *td, struct u
+@@ -664,13 +550,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_unlink(td, uap)) == 0) {
@@ -595,7 +589,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			copyinstr(uap->path, filemon->fname1,
  			    sizeof(filemon->fname1), &done);
  
-@@ -683,9 +563,6 @@ filemon_wrapper_unlink(struct thread *td, struct u
+@@ -683,9 +563,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
@@ -605,7 +599,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  	}
  
  	return (ret);
-@@ -699,13 +576,7 @@ filemon_wrapper_vfork(struct thread *td, struct vf
+@@ -699,13 +576,7 @@
  	struct filemon *filemon;
  
  	if ((ret = sys_vfork(td, uap)) == 0) {
@@ -619,7 +613,7 @@ Index: sys/dev/filemon/filemon_wrapper.c
  			len = snprintf(filemon->msgbufr,
  			    sizeof(filemon->msgbufr), "F %d %ld\n",
  			    curproc->p_pid, (long)curthread->td_retval[0]);
-@@ -715,9 +586,6 @@ filemon_wrapper_vfork(struct thread *td, struct vf
+@@ -715,9 +586,6 @@
  			/* Unlock the found filemon structure. */
  			filemon_filemon_unlock(filemon);
  		}
