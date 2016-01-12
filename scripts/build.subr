@@ -409,7 +409,7 @@ applypatches () {
 				echo ${file}
 			fi
 		done | xargs rm -f
-	done < $2 2> ${WORKDIR}/$1-patch.log
+	done < $2 > ${WORKDIR}/$1-patch.log 2>&1
 	cd -
 }
 
@@ -446,6 +446,7 @@ patchworld () {
 	# Apply patches, in order of increasing patch level.  The
 	# order matters in case we have multiple security advisories
 	# affecting the same code.
+	log "Patching world+src"
 	ls ${PATCHDIR} |
 	    sort -n > ${WORKDIR}/patchlist.tmp
 	applypatches $1 ${WORKDIR}/patchlist.tmp
