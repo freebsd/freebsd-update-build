@@ -335,23 +335,23 @@ extractiso () {
 	log "Extracting components"
 	for C in ${WORLDPARTS}; do
 		mkdir -p ${WORKDIR}/release/R/trees/world/${C}
-		cat ${WORKDIR}/iso/${REL}/${C}/${C}.?? |
+		cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
 		    tar -xpzf - -C ${WORKDIR}/release/R/trees/world/${C}
 	done
 	for C in ${KERNELPARTS}; do
 		mkdir -p ${WORKDIR}/release/R/trees/kernel/${C}
-		cat ${WORKDIR}/iso/${REL}/kernels/${C}.?? |
+		cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
 		    tar -xpzf - -C ${WORKDIR}/release/R/trees/kernel/${C}
 	done
 	for C in ${SOURCEPARTS}; do
 		mkdir -p ${WORKDIR}/release/R/trees/src/${C}
-		cat ${WORKDIR}/iso/${REL}/src/s${C}.?? |
+		cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
 		    tar -xpzf - -C ${WORKDIR}/release/R/trees/src/${C}
 	done
 
 	# If the release ISO we're handling belongs to the platform
 	# we're running right now, create a world image for future use.
-	if [ ${TARGET} = ${HOSTPLATFORM} ] || [ "${HOSTPLATFORM}" = "amd64" -a "${TARGET}" = "i386" ]; then
+	if [ ${TARGET} = ${HOSTPLATFORM} ]; then
 		log "Constructing world+src image"
 
 		# Create directory for world
@@ -359,12 +359,12 @@ extractiso () {
 
 		# Extract world and source distributions
 		for C in ${WORLDPARTS}; do
-			cat ${WORKDIR}/iso/${REL}/${C}/${C}.?? |
+			cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
 			    tar -xpzf - -C ${WORKDIR}/world/
 		done
 		for C in ${SOURCEPARTS}; do
-			cat ${WORKDIR}/iso/${REL}/src/s${C}.?? |
-			    tar -xpzf - -C ${WORKDIR}/world/usr/src/
+			cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
+			    tar -xpzf - -C ${WORKDIR}/world/
 		done
 
 		# build a single tarball of them.
