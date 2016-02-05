@@ -349,30 +349,26 @@ extractiso () {
 		    tar -xpzf - -C ${WORKDIR}/release/R/trees/src/${C}
 	done
 
-	# If the release ISO we're handling belongs to the platform
-	# we're running right now, create a world image for future use.
-	if [ ${TARGET} = ${HOSTPLATFORM} ]; then
-		log "Constructing world+src image"
+	log "Constructing world+src image"
 
-		# Create directory for world
-		mkdir ${WORKDIR}/world/
+	# Create directory for world
+	mkdir ${WORKDIR}/world/
 
-		# Extract world and source distributions
-		for C in ${WORLDPARTS}; do
-			cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
-			    tar -xpzf - -C ${WORKDIR}/world/
-		done
-		for C in ${SOURCEPARTS}; do
-			cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
-			    tar -xpzf - -C ${WORKDIR}/world/
-		done
+	# Extract world and source distributions
+	for C in ${WORLDPARTS}; do
+		cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
+		    tar -xpzf - -C ${WORKDIR}/world/
+	done
+	for C in ${SOURCEPARTS}; do
+		cat ${WORKDIR}/iso/usr/freebsd-dist/${C}.txz |
+		    tar -xpzf - -C ${WORKDIR}/world/
+	done
 
-		# build a single tarball of them.
-		tar -czf ${WORKDIR}/../world.tgz -C ${WORKDIR}/world .
+	# build a single tarball of them.
+	tar -czf ${WORKDIR}/../world.tgz -C ${WORKDIR}/world .
 
-		# clean up
-		nuke world
-	fi
+	# clean up
+	nuke world
 
 	# Unmount and detach the ISO image md(4).
 	umount ${WORKDIR}/iso
