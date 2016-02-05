@@ -53,12 +53,6 @@ extractworld world0
 rpatchworld world0
 buildworld world0
 
-# Compare the built and released worlds to identify
-# which docs are built from the doc tree; add them
-# to the built files.
-findextradocs world0
-addextradocs world0
-
 # Fully index the released and built files.
 indexfiles release
 indexfiles world0
@@ -70,7 +64,6 @@ diffwarn world0
 extractworld world1
 rpatchworld world1
 futurebuildworld world1
-addextradocs world1
 
 # Index the future world
 indexfiles world1

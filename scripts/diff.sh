@@ -45,14 +45,12 @@ patchnumber $3
 extractworld world0
 patchworld world0
 buildworld world0
-addextradocs world0
 indexfiles world0
 
 # Perform the second build
 extractworld world1
 patchworld world1
 futurebuildworld world1
-addextradocs world1
 indexfiles world1
 
 # Compare world0 and world1 to find stamps

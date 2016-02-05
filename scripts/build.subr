@@ -304,7 +304,6 @@ fetchiso () {
 
 	# Figure out where the disc1 ISO image is
 	RELNUM=${REL%-*}
-	ISO=${FTP}/${TARGET}/ISO-IMAGES/${RELNUM}/${REL}-${TARGET}-disc1.iso
 	ISO=${FTP}/FreeBSD-${REL}-${TARGET}-disc1.iso
 
 	# Fetch the ISO image.  We consider the ISO image to be
@@ -317,7 +316,7 @@ fetchiso () {
 	log "Verifying disc1 hash"
 
 	# Check that the downloaded ISO has the correct hash.
-	if ! [ "`sha256 -q ${WORKDIR}/iso.img`" = "${RELH}" ]; then
+	if ! [ "`sha512 -q ${WORKDIR}/iso.img`" = "${RELH}" ]; then
 		echo "FreeBSD ${REL}-${TARGET}-disc1.iso has incorrect hash."
 		rm ${WORKDIR}/iso.img
 		return 1
@@ -475,13 +474,6 @@ buildworld () {
 		BRANCH_OVERRIDE=$2					\
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}		\
 	    /bin/sh -e <<-"EOF" 2>&1 >${WORKDIR}/$1-build.log
-		# Releases build and distribute catpages
-		export MANBUILDCAT=YES
-
-		# Compat flags, for pre-6.0
-		export COMPATFLAGS="COMPAT1X=yes COMPAT20=yes		\
-		    COMPAT21=yes COMPAT22=yes COMPAT3X=yes COMPAT4X=yes"
-
 		# Function for logging what we're doing
 		log () {
 			echo "`date` $1 for FreeBSD/${TARGET} ${RELP}" 1>&2
@@ -490,37 +482,25 @@ buildworld () {
 		# Build the world
 		log "Building world"
 		cd /usr/src &&
-		    make ${COMPATFLAGS} ${JFLAG} buildworld 2>&1
+		    make ${JFLAG} buildworld 2>&1
 
-		# Distribute the world
-		log "Distributing world"
-		cd /usr/src/release &&
-		    make obj &&
-		    make ${COMPATFLAGS} release.1 release.2 2>&1
+		# Build and kernel
+		log "Building kernel"
+		cd /usr/src &&
+		    make ${JFLAG} buildkernel 2>&1
 
-		# Build and distribute kernels
-		log "Building and distributing kernels"
+		# Build and install release images
+		log "Building release"
 		cd /usr/src/release &&
-		    make ${JFLAG} release.3 2>&1
-
-		# Build "synthetic" world distributions
-		log "Constructing world components"
-		cd /usr/src/release &&
-		    make release.5 2>&1
-
-		# Distribute source
-		log "Distributing source"
-		cd /usr/src/release &&
-		    make release.7 2>&1
+		    make release NODVD=y 2>&1 &&
+		    make install NODVD=y DESTDIR=/R 2>&1
 	EOF
 
-	# Put all the components into the right places.  This could be
-	# merged with the previous block of jailed script, except that
-	# sh(1) seems to get confused and stop reading the here-document
-	# halfway through if I do that...
+	# Put all the components into the right places.
 	log "Moving components into staging area"
 	jail ${WORKDIR}/$1 ${BUILDHOSTNAME} 127.1.2.3			\
 	    /usr/bin/env -i PATH=${PATH}				\
+		WORLDPARTS="${WORLDPARTS}"				\
 		KERNELPARTS="${KERNELPARTS}"				\
 		SOURCEPARTS="${SOURCEPARTS}"				\
 	    /bin/sh -e <<-"EOF" 2>&1 >>${WORKDIR}/$1-build.log
@@ -528,21 +508,23 @@ buildworld () {
 		mkdir -p /R/trees
 
 		# Move world components into place
-		mv /R/stage/trees /R/trees/world
+		for C in ${WORLDPARTS}; do
+			mkdir -p /R/trees/world/${C}
+			cat /R/ftp/${C}.txz |
+			    tar -xpzf - -C /R/trees/world/${C}
+		done
 
 		# Move kernel components into place
-		mkdir -p /R/trees/kernel
 		for C in ${KERNELPARTS}; do
-			CTMP=`echo ${C} | tr 'a-z' 'A-Z'`
 			mkdir -p /R/trees/kernel/${C}
-			mv /R/stage/kernels/${CTMP} /R/trees/kernel/${C}
+			cat /R/ftp/${C}.txz |
+			    tar -xpzf - -C /R/trees/kernel/${C}
 		done
 
 		# Extract src components into place
-		mkdir -p /R/trees/src/
 		for C in ${SOURCEPARTS}; do
 			mkdir -p /R/trees/src/${C}
-			cat /R/stage/dists/src/s${C}.?? |
+			cat /R/ftp/${C}.txz |
 			    tar -xpzf - -C /R/trees/src/${C}
 		done
 	EOF
@@ -574,47 +556,6 @@ futurebuildworld () {
 		log "Turning NTP back on"
 		/etc/rc.d/ntpd start >/dev/null
 	fi
-}
-
-# Compare ${WORKDIR}/release and ${WORKDIR}/$1, identify which parts
-# of the world|doc subcomponent are missing from the latter, and
-# build a tarball out of them.
-findextradocs () {
-	log "Identifying extra documentation"
-
-	( cd ${WORKDIR}/release && find R ) |
-	    sort > ${WORKDIR}/release-files
-	( cd ${WORKDIR}/$1 && find R ) |
-	    sort > ${WORKDIR}/$1-files
-	comm -23 ${WORKDIR}/release-files ${WORKDIR}/$1-files |
-	    awk '
-		BEGIN { p = "/" }
-		{ if ( match($0, p) != 1) {
-			print $0
-			p = sprintf("%s/", $0)
-		} }' |
-	    grep -E '^R/trees/world/doc' |
-	    cut -f 4- -d / > ${WORKDIR}/extradocs
-	rm ${WORKDIR}/release-files ${WORKDIR}/$1-files
-
-	echo
-	echo "Documentation not built from src:"
-	cut -f 2- -d / ${WORKDIR}/extradocs
-	echo
-
-	tar -czf ${WORKDIR}/extradocs.tgz		\
-	    -C ${WORKDIR}/release/R/trees/world		\
-	    -T ${WORKDIR}/extradocs
-	rm ${WORKDIR}/extradocs
-}
-
-# Add extra docs to ${WORKDIR}/$1
-addextradocs () {
-	log "Extracting extra docs"
-
-	cat ${WORKDIR}/extradocs.tgz |
-	    chroot ${WORKDIR}/$1/			\
-		tar -xpzf - -C /R/trees/world doc/
 }
 
 # Index ${WORKDIR}/$1/R/trees/ and write to ${WORKDIR}/$1-index.  The
@@ -788,15 +729,9 @@ findnonstamps () {
 	    lam - - - - > ${WORKDIR}/release-filemap
 }
 
-# Fixup paths: kernels are installed under /boot/, while src is 
-# installed under /usr/src/.
+# Fixup: the "kernel" kernel is really the "generic" kernel.
 indexpublish () {
-	sed -E '
-		s,src\|([^|]+)\|/,src|\1|/usr/src/,
-		s,src\|(.*)\|/([^|]*)$,src|\1|/usr/src/\2,
-		s,kernel\|([^|]+)\|/,kernel|\1|/boot/,
-		s,kernel\|(.*)\|/([^|]*)$,kernel|\1|/boot/\2,
-	    '
+        sed -E 's,kernel\|kernel,kernel|generic,'
 }
 
 # If a parameter is specified, move $1 to "newworld" and $1-index to
