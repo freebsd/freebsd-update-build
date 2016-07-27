@@ -302,9 +302,9 @@ checkinit () {
 fetchiso () {
 	log "Starting fetch"
 
-	# Figure out where the disc1 ISO image is
+	# Figure out where the dvd1 ISO image is
 	RELNUM=${REL%-*}
-	ISO=${FTP}/FreeBSD-${REL}-${TARGET}-disc1.iso
+	ISO=${FTP}/releases/${TARGET}/${TARGET}/ISO-IMAGES/${RELNUM}/FreeBSD-${REL}-${TARGET}-dvd1.iso
 
 	# Fetch the ISO image.  We consider the ISO image to be
 	# the One True Release and don't look at the files used
@@ -313,11 +313,11 @@ fetchiso () {
 	# again.
 	fetch -o ${WORKDIR}/iso.img -rR ${ISO} 2>&1
 
-	log "Verifying disc1 hash"
+	log "Verifying dvd1 hash"
 
 	# Check that the downloaded ISO has the correct hash.
 	if ! [ "`sha512 -q ${WORKDIR}/iso.img`" = "${RELH}" ]; then
-		echo "FreeBSD ${REL}-${TARGET}-disc1.iso has incorrect hash."
+		echo "FreeBSD ${REL}-${TARGET}-dvd1.iso has incorrect hash."
 		rm ${WORKDIR}/iso.img
 		return 1
 	fi
