@@ -304,7 +304,7 @@ fetchiso () {
 
 	# Figure out where the dvd1 ISO image is
 	RELNUM=${REL%-*}
-	ISO=${FTP}/releases/${TARGET}/${TARGET}/ISO-IMAGES/${RELNUM}/FreeBSD-${REL}-${TARGET}-dvd1.iso
+	ISO=${FTP}/FreeBSD-${REL}-${TARGET}-dvd1.iso
 
 	# Fetch the ISO image.  We consider the ISO image to be
 	# the One True Release and don't look at the files used
