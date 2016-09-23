@@ -747,7 +747,7 @@ stageworld () {
 		# Move $1 to newworld
 		mkdir -p ${WORKDIR}/newworld
 		tar cf - -C ${WORKDIR}/$1 . | tar xf - -C ${WORKDIR}/newworld/
-		umount ${WORKDIR}/$1 || rm -fr ${WORKDIR}/$1 || chflags -R 0 ${WORKDIR}/$1 && rm -fr ${WORKDIR}/$1 || true
+		nuke $1
 		mv ${WORKDIR}/$1-index ${WORKDIR}/newworld-index
 	fi
 
