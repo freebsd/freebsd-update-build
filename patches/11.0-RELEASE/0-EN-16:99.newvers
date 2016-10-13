@@ -1,0 +1,13 @@
+Index: sys/conf/newvers.sh
+===================================================================
+--- sys/conf/newvers.sh	(revision 306799)
++++ sys/conf/newvers.sh	(working copy)
+@@ -32,7 +32,7 @@
+ 
+ TYPE="FreeBSD"
+ REVISION="11.0"
+-BRANCH="RELEASE-p1"
++BRANCH="RELEASE"
+ if [ -n "${BRANCH_OVERRIDE}" ]; then
+ 	BRANCH=${BRANCH_OVERRIDE}
+ fi
