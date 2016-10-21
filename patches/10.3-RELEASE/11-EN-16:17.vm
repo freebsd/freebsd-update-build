@@ -233,7 +233,3 @@
  #define OBJ_DEAD	0x0008		/* dead objects (during rundown) */
  #define	OBJ_NOSPLIT	0x0010		/* dont split this object */
  #define OBJ_PIPWNT	0x0040		/* paging in progress wanted */
---- ..orig
-+++ .
-   Merged /head:r300758,300959,302063,302236,302317,302567,302580
-   Merged /stable/10:r301184,301436,302243,302513,303291
