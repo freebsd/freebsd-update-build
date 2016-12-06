@@ -50,7 +50,7 @@ cat <<-EOF
 
 	The FreeBSD/${TARGET} ${RELP} update build has been signed and is
 	ready to be uploaded.  Remember to run
-	# sh -e umountkey.sh
+	# sh -e scripts/umountkey.sh
 	to unmount the decrypted key once you have finished signing all
 	the new builds.
 EOF
