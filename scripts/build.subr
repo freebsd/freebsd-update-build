@@ -561,7 +561,7 @@ indexfiles () {
 	log "Indexing $1"
 	# Output lines of the form
 	#
-	# comp/scomp/path/to/file|type|inum|user|group|perm|flags|value
+	# comp|scomp|/path/to/file|type|inum|user|group|perm|flags|value
 	#
 	# where the fields have meaning as follows:
 	# comp = component (kernel, world, src)
