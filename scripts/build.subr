@@ -470,6 +470,7 @@ buildworld () {
 	    /usr/bin/env -i PATH=${PATH} RELP=${RELP}			\
 		JFLAG=${JFLAG}						\
 		BRANCH_OVERRIDE=$2					\
+		XZ_THREADS=16						\
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}		\
 	    /bin/sh -e <<-"EOF" 2>&1 >${WORKDIR}/$1-build.log
 		# Function for logging what we're doing
