@@ -580,17 +580,25 @@ indexfiles () {
 	( cd ${WORKDIR}/$1/R && find trees -mindepth 2 |
 		grep -vE '/obj$' |
 		while read F; do
+			eval $(stat -s ${F})
+			# Remove the uarch flag as that is problematic
+			st_flags=$(($st_flags & ~04000))
+			st_mode_mid=$(( ($st_mode & 07000) >> 9))
+			st_mode_low=$(($st_mode & 0777))
 			if [ -L ${F} ]; then
 				echo -n "${F}|L|"
-				stat -n -f '%i|%u|%g|%Mp%Lp|%Of|' ${F};
+				printf "%u|%u|%u|%o%o|%o|" $st_ino $st_uid \
+				    $st_gid $st_mode_mid $st_mode_low $st_flags
 				readlink ${F};
 			elif [ -f ${F} ]; then
 				echo -n "${F}|f|"
-				stat -n -f '%i|%u|%g|%Mp%Lp|%Of|' ${F};
+				printf "%u|%u|%u|%o%o|%o|" $st_ino $st_uid \
+				    $st_gid $st_mode_mid $st_mode_low $st_flags
 				sha256 -q ${F};
 			elif [ -d ${F} ]; then
 				echo -n "${F}|d|"
-				stat -f '%i|%u|%g|%Mp%Lp|%Of|' ${F};
+				printf "%u|%u|%u|%o%o|%o|\n" $st_ino $st_uid \
+				    $st_gid $st_mode_mid $st_mode_low $st_flags
 			else
 				echo "Unknown file type: ${F}"		\
 				    >/dev/stderr
