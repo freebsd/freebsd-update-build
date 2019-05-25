@@ -196,7 +196,7 @@ encryptkey () {
 	KEYOWNER=${SUDO_USER:-${USER}}
 
 	echo "Encrypting signing key for ${KEYOWNER}"
-	openssl enc -aes-256-cbc				\
+	openssl enc -aes-256-cbc -md md5			\
 	    -in ${PRIVKEYDIR}/priv.ssl				\
 	    -out ${KEYDIR}/priv.ssl-${KEYOWNER}
 }
@@ -206,7 +206,7 @@ decryptkey () {
 	KEYOWNER=${SUDO_USER:-${USER}}
 
 	echo "Decrypting signing key for ${KEYOWNER}"
-	openssl enc -d -aes-256-cbc				\
+	openssl enc -d -aes-256-cbc -md md5			\
 	    -in ${KEYDIR}/priv.ssl-${KEYOWNER}			\
 	    -out ${PRIVKEYDIR}/priv.ssl
 }
