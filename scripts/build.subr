@@ -311,7 +311,9 @@ fetchiso () {
 	# for FTP installs.  The FreeBSD 4.7-RELEASE ISO and FTP
 	# files were not identical, but this should never happen
 	# again.
-	fetch -o ${WORKDIR}/iso.img -rR ${ISO} 2>&1
+	if ! [ -f "${WORKDIR}/iso.img" ]; then
+		fetch -o ${WORKDIR}/iso.img -rR ${ISO} 2>&1
+	fi
 
 	log "Verifying dvd1 hash"
 
