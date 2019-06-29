@@ -555,6 +555,12 @@ futurebuildworld () {
 		log "Turning NTP back on"
 		/etc/rc.d/ntpd start >/dev/null
 	fi
+
+	# The local unbound resolver gets really grumpy with time changes.
+	if /etc/rc.d/local_unbound status |
+	    grep -q 'is running'; then
+		/etc/rc.d/local_unbound restart >/dev/null
+	fi
 }
 
 # Index ${WORKDIR}/$1/R/trees/ and write to ${WORKDIR}/$1-index.  The
