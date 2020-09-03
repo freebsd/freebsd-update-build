@@ -856,7 +856,9 @@ stageworld () {
 	for M in INDEX-ALL INDEX-NEW INDEX-OLD; do
 		# Create publishable version
 		indexpublish < ${WORKDIR}/${M}.new		\
-		    | fgrep -v 'kernel|generic|/boot/kernel/linker.hints' \
+		    | fgrep -v -e 'kernel|generic|/boot/kernel/linker.hints' \
+			-e 'world|base|/usr/share/man/mandoc.db' \
+			-e 'world|base|/usr/share/openssl/man/mandoc.db' \
 		    > ${WORKDIR}/${M}.new.pub || true
 
 		# Copy to staging area
