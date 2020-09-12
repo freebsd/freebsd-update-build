@@ -27,6 +27,7 @@ genpatch() {
 	rmdir ${tempdir}
 }
 
+echo -n "Building hash table..."
 mkdir -p ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/
 for V in ${OLDRELS}; do
 	zcat ${WWWDIR}/${V}/${ARCH}/m/* |
@@ -38,7 +39,9 @@ for V in ${OLDRELS}; do
 	    lam -s "${V}|" -
 done |
     sort -k 2,2 -t '|' > hashtab
+echo "done"
 
+echo "Starting patch generation"
 zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
     cut -f 3,4,9 -d '|' |
     fgrep '|f|' |
@@ -71,5 +74,7 @@ zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
 	done
     done
 
+echo -n "Finished spawning children, waiting for them to finish..."
 wait
+echo "done"
 rm hashtab
