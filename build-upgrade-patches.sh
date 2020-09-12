@@ -12,6 +12,21 @@ OLDRELS=$3
 
 WWWDIR=${BASEDIR}/pub
 
+MAXJOBS=$(( $(sysctl -n hw.ncpu) - 2 ))
+if [ $MAXJOBS -lt 1 ]; then
+	MAXJOBS=1
+fi
+
+genpatch() {
+	tempdir=$(mktemp -d -t genpatch)
+
+	gunzip < ${WWWDIR}/${OR}/${ARCH}/f/${OH}.gz > ${tempdir}/${OH}
+	gunzip < ${WWWDIR}/${NR}/${ARCH}/f/${NH}.gz > ${tempdir}/${NH}
+	bsdiff ${tempdir}/${OH} ${tempdir}/${NH} ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/${OH}-${NH}
+	rm ${tempdir}/${OH} ${tempdir}/${NH}
+	rmdir ${tempdir}
+}
+
 mkdir -p ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/
 for V in ${OLDRELS}; do
 	zcat ${WWWDIR}/${V}/${ARCH}/m/* |
@@ -43,10 +58,17 @@ zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
 	if [ ${OH} = ${NH} ]; then
 		continue
 	fi
-	gunzip < ${WWWDIR}/${OR}/${ARCH}/f/${OH}.gz > ${OH}
-	gunzip < ${WWWDIR}/${NR}/${ARCH}/f/${NH}.gz > ${NH}
-	bsdiff ${OH} ${NH} ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/${OH}-${NH}
-	rm ${OH} ${NH}
+
+	genpatch &
+
+	jobs="$(jobs)"
+	numjobs=$(echo "$jobs" | wc -l)
+	while [ $numjobs -ge $MAXJOBS ]; do
+		sleep 2
+
+		jobs="$(jobs)"
+		numjobs=$(echo "$jobs" | wc -l)
+	done
     done
 
 rm hashtab
