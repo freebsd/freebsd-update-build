@@ -1,0 +1,14 @@
+--- sys/conf/newvers.sh.orig	2020-09-12 08:05:28.983303000 +0000
++++ sys/conf/newvers.sh	2020-09-12 08:06:24.743930000 +0000
+@@ -49,7 +49,10 @@
+ 
+ TYPE="FreeBSD"
+ REVISION="12.2"
+-BRANCH=${BRANCH_OVERRIDE:-BETA1}
++BRANCH="BETA1"
++if [ -n "${BRANCH_OVERRIDE}" ]; then
++	BRANCH=${BRANCH_OVERRIDE}
++fi
+ RELEASE="${REVISION}-${BRANCH}"
+ VERSION="${TYPE} ${RELEASE}"
+ 
