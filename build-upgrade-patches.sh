@@ -71,4 +71,5 @@ zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
 	done
     done
 
+wait
 rm hashtab
