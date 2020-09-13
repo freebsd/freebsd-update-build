@@ -5,6 +5,11 @@ if [ $# -lt 3 ]; then
 	exit 1
 fi
 
+while [ $(ls -d ${TMPDIR:-/tmp}/genpatch* 2>/dev/null | wc -l) -gt 0 ]; do
+	echo "There appears to be evidence from previous runs in ${TMPDIR:-/tmp}/genpatch*...bailing"
+	exit 1
+done
+
 BASEDIR=/usr/freebsd-update-server
 ARCH=$1
 TARGETREL=$2
@@ -22,7 +27,14 @@ genpatch() {
 
 	gunzip < ${WWWDIR}/${OR}/${ARCH}/f/${OH}.gz > ${tempdir}/${OH}
 	gunzip < ${WWWDIR}/${NR}/${ARCH}/f/${NH}.gz > ${tempdir}/${NH}
-	bsdiff ${tempdir}/${OH} ${tempdir}/${NH} ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/${OH}-${NH}
+	bsdiff ${tempdir}/${OH} ${tempdir}/${NH} ${tempdir}/${OH}-${NH}
+	if [ $? -eq 0 ]; then
+		mv ${tempdir}/${OH}-${NH} ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/${OH}-${NH}
+	else
+		echo "Error generating patch ${OH}-${NH}, removing"
+		rm ${tempdir}/${OH}-${NH}
+	fi
+
 	rm ${tempdir}/${OH} ${tempdir}/${NH}
 	rmdir ${tempdir}
 }
@@ -42,6 +54,7 @@ done |
 echo "done"
 
 echo "Starting patch generation"
+marker=
 zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
     cut -f 3,4,9 -d '|' |
     fgrep '|f|' |
@@ -55,6 +68,11 @@ zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
     sort -k 2,2 -t '|' |
     tr '|' ' ' |
     while read OR OH NR NH; do
+	if [ "$(echo ${OH} | cut -c1)" != "$marker" ]; then
+		echo "  working on $(echo ${OH} | cut -c1-4)...."
+		marker="$(echo ${OH} | cut -c1)"
+	fi
+
 	if [ -f ${WWWDIR}/to-${TARGETREL}/${ARCH}/bp/${OH}-${NH} ]; then
 		continue
 	fi
@@ -75,6 +93,8 @@ zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
     done
 
 echo -n "Finished spawning children, waiting for them to finish..."
-wait
+while [ $(ls -d ${TMPDIR:-/tmp}/genpatch* 2>/dev/null | wc -l) -gt 0 ]; do
+	sleep 2
+done
 echo "done"
 rm hashtab
