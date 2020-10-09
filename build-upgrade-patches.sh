@@ -82,13 +82,8 @@ zcat ${WWWDIR}/${TARGETREL}/${ARCH}/m/* |
 
 	genpatch &
 
-	jobs="$(jobs)"
-	numjobs=$(echo "$jobs" | wc -l)
-	while [ $numjobs -ge $MAXJOBS ]; do
+	while [ $(ls -d ${TMPDIR:-/tmp}/genpatch* 2>/dev/null | wc -l) -ge $MAXJOBS ]; do
 		sleep 2
-
-		jobs="$(jobs)"
-		numjobs=$(echo "$jobs" | wc -l)
 	done
     done
 
