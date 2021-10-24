@@ -701,8 +701,11 @@ findstamps () {
 	rm ${WORKDIR}/$1-index-nohash ${WORKDIR}/$2-index-nohash
 
 	# Generate list of files with varying hashes.
+	# /bin/freebsd-version is special and we want it to ship
+	# even though it has a buildstamp.
 	comm -23 ${WORKDIR}/$1-index ${WORKDIR}/$2-index |
 	    cut -f 1-3 -d '|' |
+	    grep -v '^world|base|/bin/freebsd-version' |
 	    sort > ${WORKDIR}/stampedfiles.new
 
 	# Construct a tarball containing the stamped files.
