@@ -289,8 +289,8 @@ checkbins () {
 checkinit () {
 	if ! [ -s ${WORKDIR}/INDEX-ALL ]; then 
 		cat <<-EOF
-			You must run init.sh to fetch and extract the
-			release before running diff.sh.
+			You must run approve.sh to build the indexes for
+			the release before running diff.sh.
 		EOF
 		exit 1
 	fi
