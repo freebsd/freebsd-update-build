@@ -396,16 +396,7 @@ extractworld () {
 applypatches () {
 	cd ${WORKDIR}/$1/usr/src
 	while read PATCH; do
-		patch -p0 < ${PATCHDIR}/${PATCH}
-		# Remove ".orig" files created by patch(1) and empty files
-		for file in $(perl -ne \
-		    'print("$1\n") if /^\+\+\+ (?:b\/|\.\/)?(\S+)(?:\s+[(0-9].*)?$/' < \
-		    ${PATCHDIR}/${PATCH}); do
-			echo ${file}.orig
-			if [ ! -s ${file} ]; then
-				echo ${file}
-			fi
-		done | xargs rm -f
+		patch -EV none -p0 < ${PATCHDIR}/${PATCH}
 	done < $2 > ${WORKDIR}/$1-patch.log 2>&1
 	cd -
 }
