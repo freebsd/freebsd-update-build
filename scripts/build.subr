@@ -528,6 +528,21 @@ buildworld () {
 # turn it back on afterwards.
 futurebuildworld () {
 	# Turn off ntpd if necessary
+	# Turn off salt too, if it's running, so it won't turn ntp back on
+	if /usr/sbin/service salt_minion status > /dev/null; then
+		salt_was_running=1
+		log "Turning off Salt minion"
+		/usr/sbin/service salt_minion stop >/dev/null
+	else
+		salt_was_running=0
+	fi
+
+	if /usr/sbin/service nslcd status > /dev/null; then
+		nslcd_was_running=1
+	else
+		nslcd_was_running=0
+	fi
+
 	if /etc/rc.d/ntpd status |
 	    grep -q 'is running'; then
 		ntpd_was_running=1
@@ -545,6 +560,15 @@ futurebuildworld () {
 	if [ ${ntpd_was_running} = 1 ]; then
 		log "Turning NTP back on"
 		/etc/rc.d/ntpd start >/dev/null
+	fi
+	# The time change confuses nslcd.  Restart it if it was running.
+	if [ ${nslcd_was_running} = 1 ]; then
+		log "Restarting nslcd"
+		/usr/sbin/service nslcd restart > /dev/null
+	fi
+	if [ ${salt_was_running} = 1 ]; then
+		log "Turning Salt minion back on"
+		/usr/sbin/service salt_minion start > /dev/null
 	fi
 
 	# The local unbound resolver gets really grumpy with time changes.
