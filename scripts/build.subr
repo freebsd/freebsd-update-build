@@ -931,7 +931,7 @@ printstamps () {
 	echo
 	echo "Values of build stamps, excluding library archive headers:"
 	cat ${WORKDIR}/stampvalues.new |
-	    grep -vE '.*/[0-9]* *[0-9]{10}  0     0     (0|100644)'
+	    grep -vE '.*/[0-9]* *[0-9]{10}  0     0     (0|100644)' || true
 }
 
 # Print a list of new updates, in order to allow the user to
@@ -1085,6 +1085,8 @@ unstamp () {
 			look "${C}|${SC}|${FP}|" ${WORKDIR}/$1-index	\
 			    >> ${WORKDIR}/$1-index-delete
 	        fi
+		rm ${TMPDIR}/old ${TMPDIR}/old.1 ${TMPDIR}/old.2
+		rm ${TMPDIR}/new ${TMPDIR}/new.1 ${TMPDIR}/new.2
 	    done
 
 	# Remove lines from $1-index and add new lines.
@@ -1119,8 +1121,6 @@ unstamp () {
 
 	# Clean up
 	rm ${WORKDIR}/$1-index-add ${WORKDIR}/$1-index-delete
-	rm ${TMPDIR}/old ${TMPDIR}/old.1 ${TMPDIR}/old.2
-	rm ${TMPDIR}/new ${TMPDIR}/new.1 ${TMPDIR}/new.2
 	nuke oldstamps
 }
 
