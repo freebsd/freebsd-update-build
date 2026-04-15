@@ -482,8 +482,8 @@ buildworld () {
 		# Build and install release images
 		log "Building release"
 		cd /usr/src/release &&
-		    make release NODVD=y 2>&1 &&
-		    make install NODVD=y DESTDIR=/R 2>&1
+		    make release NODVD=y NOPKG=YES NOPKGBASE=YES 2>&1 &&
+		    make install NODVD=y NOPKG=YES NOPKGBASE=YES DESTDIR=/R 2>&1
 	EOF
 
 	# Put all the components into the right places.
@@ -826,12 +826,14 @@ stageworld () {
 		look "${C}|${SC}|${F}|f|" ${WORKDIR}/INDEX-OLD.new |
 		    cut -f 9 -d '|' |
 		    while read OH; do
+			if ! [ -f ${STAGEDIR}/bp/${OH}-${H} ]; then
 			gunzip < ${WORKDIR}/oldfiles/${OH}.gz		\
 			    > ${TMPDIR}/${OH}
 			bsdiff ${TMPDIR}/${OH}				\
 			    ${WORKDIR}/newworld/R/trees/${C}/${SC}/${F}	\
 			    ${STAGEDIR}/bp/${OH}-${H}
 			rm ${TMPDIR}/${OH}
+			fi
 		    done
 	    done
 
