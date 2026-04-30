@@ -45,6 +45,7 @@ readglobalconfig () {
 	export SRCDIR=${BASEDIR}/src
 	export KEYDIR=${BASEDIR}/keys
 	export PRIVKEYDIR=${KEYDIR}/mnt
+	export GITREPO=${BASEDIR}/git/freebsd-src
 
 	JFLAG=${JFLAG:-"-j$(($(sysctl -n kern.smp.cpus)+1))"}
 
@@ -396,7 +397,16 @@ extractworld () {
 applypatches () {
 	cd ${WORKDIR}/$1/usr/src
 	while read PATCH; do
-		patch -EV none -p0 < ${PATCHDIR}/${PATCH}
+		patch -p0 < ${PATCHDIR}/${PATCH}
+		# Remove ".orig" files created by patch(1) and empty files
+		for file in $(perl -ne \
+		    'print("$1\n") if /^\+\+\+ (?:b\/|\.\/)?(\S+)(?:\s+[(0-9].*)?$/' < \
+		    ${PATCHDIR}/${PATCH}); do
+			echo ${file}.orig
+			if [ ! -s ${file} ]; then
+				echo ${file}
+			fi
+		done | xargs rm -f
 	done < $2 > ${WORKDIR}/$1-patch.log 2>&1
 	cd -
 }
@@ -431,17 +441,31 @@ rpatchworld () {
 
 # Apply all available patches to a world in ${WORKDIR}/$1
 patchworld () {
-	# Apply patches, in order of increasing patch level.  The
-	# order matters in case we have multiple security advisories
-	# affecting the same code.
-	log "Patching world+src"
-	ls ${PATCHDIR} |
-	    sort -n > ${WORKDIR}/patchlist.tmp
-	applypatches $1 ${WORKDIR}/patchlist.tmp
-	rm ${WORKDIR}/patchlist.tmp
+	# GITBRANCH dictates whether we are going to use a provided
+	# git tree or the old style patches in a directory.
+	if [ -n "${GITBRANCH}" ]; then
+		# We are going to use git, so kill the old src tree.
+		nuke $1/usr/src
 
-	# Edit src/sys/conf/newvers.sh
-	patchnewvers $1 "-p${PNUM}"
+		log "Cloning ${GITBRANCH}"
+		git clone -q -b ${GITBRANCH} ${GITREPO} ${WORKDIR}/$1/usr/src
+		gitrev=$(git -C ${WORKDIR}/$1/usr/src log --pretty=%h HEAD^..HEAD)
+		eval $(sh ${WORKDIR}/$1/usr/src/sys/conf/newvers.sh -V RELEASE | sed 's/^RELEASE/RELP/')
+		export RELP
+		log "Git revision is $gitrev"
+	else
+		# Apply patches, in order of increasing patch level.  The
+		# order matters in case we have multiple security advisories
+		# affecting the same code.
+		log "Patching world+src"
+		ls ${PATCHDIR} |
+		    sort -n > ${WORKDIR}/patchlist.tmp
+		applypatches $1 ${WORKDIR}/patchlist.tmp
+		rm ${WORKDIR}/patchlist.tmp
+
+		# Edit src/sys/conf/newvers.sh
+		patchnewvers $1 "-p${PNUM}"
+	fi
 }
 
 # Perform a build in ${WORKDIR}/$1 with BRANCH_OVERRIDE set to $2
@@ -946,31 +970,34 @@ printupdates () {
 
 # Record the patch number of the build being performed.
 patchnumber () {
-	# Read old patch number, if any
-	if [ -f ${WORKDIR}/patchnum ]; then
-		OPN=`cat ${WORKDIR}/patchnum`
-	else
-		OPN=0
-	fi
+	# Only use the patch number if not using git.
+	if [ -z "GITBRANCH" ]; then
+		# Read old patch number, if any
+		if [ -f ${WORKDIR}/patchnum ]; then
+			OPN=`cat ${WORKDIR}/patchnum`
+		else
+			OPN=0
+		fi
 
-	# If the patch number is not specified, add one to the previous
-	if [ -z "$1" ]; then
-		export PNUM=$((${OPN} + 1))
-	else
-		export PNUM="$1"
-	fi
+		# If the patch number is not specified, add one to the previous
+		if [ -z "$1" ]; then
+			export PNUM=$((${OPN} + 1))
+		else
+			export PNUM="$1"
+		fi
 
-	# Patch number must be greater than previous number unless zero
-	if [ ${OPN} -gt 0 ] &&
-	    ! [ ${PNUM} -gt ${OPN} ]; then
-		echo -n "Patch number (${PNUM}) is not greater"
-		echo " than previous (${OPN})"
-		exit 1
-	fi
+		# Patch number must be greater than previous number unless zero
+		if [ ${OPN} -gt 0 ] &&
+		    ! [ ${PNUM} -gt ${OPN} ]; then
+			echo -n "Patch number (${PNUM}) is not greater"
+			echo " than previous (${OPN})"
+			exit 1
+		fi
 
-	# Record the new patch number
-	echo ${PNUM} > ${WORKDIR}/patchnum.new
-	export RELP="${REL}-p${PNUM}"
+		# Record the new patch number
+		echo ${PNUM} > ${WORKDIR}/patchnum.new
+		export RELP="${REL}-p${PNUM}"
+	fi
 }
 
 # Approve the build: Sign it and place the signature and public key
