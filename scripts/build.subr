@@ -940,10 +940,21 @@ stageworld () {
 	# is the original release.
 	echo -n 'freebsd-update|' > ${WORKDIR}/tag.new
 	echo -n "${TARGET}|${REL}|" >> ${WORKDIR}/tag.new
-	if [ -f ${WORKDIR}/patchnum.new ]; then
-		echo -n `cat ${WORKDIR}/patchnum.new` >> ${WORKDIR}/tag.new
+	if [ -n "${GITBRANCH}" ]; then
+		case ${RELP} in
+		*-p*)
+			echo -n "${RELP##*-p}" >> ${WORKDIR}/tag.new
+			;;
+		*)
+			echo -n "0" >> ${WORKDIR}/tag.new
+			;;
+		esac
 	else
-		echo -n "0" >> ${WORKDIR}/tag.new
+		if [ -f ${WORKDIR}/patchnum.new ]; then
+			echo -n `cat ${WORKDIR}/patchnum.new` >> ${WORKDIR}/tag.new
+		else
+			echo -n "0" >> ${WORKDIR}/tag.new
+		fi
 	fi
 	echo "|${TH}|${EOL}" >> ${WORKDIR}/tag.new
 }
