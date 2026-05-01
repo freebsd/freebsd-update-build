@@ -429,14 +429,28 @@ patchnewvers () {
 # distributed, since we're pretending that these patches weren't added
 # after the release.
 rpatchworld () {
-	ls ${PATCHDIR} |
-	    grep -E '^0-' |
-	    cat > ${WORKDIR}/patchlist.tmp
-	applypatches $1 ${WORKDIR}/patchlist.tmp
-	rm ${WORKDIR}/patchlist.tmp
+	# GITBRANCH dictates whether we are going to use a provided
+	# git tree or the old style patches in a directory.
+	if [ -n "${GITBRANCH}" ]; then
+		# We are going to use git, so kill the old src tree.
+		nuke $1/usr/src
 
-	# Edit src/sys/conf/newvers.sh
-	patchnewvers $1 ""
+		log "Cloning ${GITBRANCH}"
+		git clone -q -b ${GITBRANCH} ${GITREPO} ${WORKDIR}/$1/usr/src
+		gitrev=$(git -C ${WORKDIR}/$1/usr/src log --pretty=%h HEAD^..HEAD)
+		eval $(sh ${WORKDIR}/$1/usr/src/sys/conf/newvers.sh -V RELEASE | sed 's/^RELEASE/RELP/')
+		export RELP
+		log "Git revision is $gitrev"
+	else
+		ls ${PATCHDIR} |
+		    grep -E '^0-' |
+		    cat > ${WORKDIR}/patchlist.tmp
+		applypatches $1 ${WORKDIR}/patchlist.tmp
+		rm ${WORKDIR}/patchlist.tmp
+
+		# Edit src/sys/conf/newvers.sh
+		patchnewvers $1 ""
+	fi
 }
 
 # Apply all available patches to a world in ${WORKDIR}/$1
