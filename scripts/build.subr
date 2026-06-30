@@ -392,7 +392,8 @@ extractworld () {
 	mount -t tmpfs tmpfs ${WORKDIR}/$1
 	tar -xpzf ${WORKDIR}/../world.tgz -C ${WORKDIR}/$1
 	# Install git for version stamping the kernel
-	pkg -c ${WORKDIR}/$1 install -y git-lite
+	log "Installing git-lite into chroot"
+	pkg -c ${WORKDIR}/$1 install -Iqy git-lite > /dev/null
 }
 
 # Apply a list of patches stored in $2 to a world in ${WORKDIR}/$1
