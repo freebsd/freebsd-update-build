@@ -393,7 +393,7 @@ extractworld () {
 	tar -xpzf ${WORKDIR}/../world.tgz -C ${WORKDIR}/$1
 	# Install git for version stamping the kernel
 	log "Installing git-lite into chroot"
-	pkg -c ${WORKDIR}/$1 install -Iqy git-lite > /dev/null
+	pkg -c ${WORKDIR}/$1 install -r FreeBSD -Iqy git-lite > /dev/null
 	# We need to generate an ld-elf.hints file for things to play nicely.
 	chroot ${WORKDIR}/$1 /sbin/ldconfig /lib /usr/lib /usr/local/lib
 }
